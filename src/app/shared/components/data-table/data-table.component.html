@@ -1,0 +1,87 @@
+<div class="data-table-container">
+  <!-- Loading spinner -->
+  <div *ngIf="loading" class="loading-overlay">
+    <div class="loading-spinner">
+      <mat-icon svgIcon="feather:loader" class="animate-spin"></mat-icon>
+      <span>Loading data...</span>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-responsive">
+    <table mat-table [dataSource]="dataSource" matSort (matSortChange)="onSortChange($event)" class="w-full">
+
+      <!-- Dynamic Columns -->
+      <ng-container *ngFor="let column of columns">
+        <ng-container [matColumnDef]="column.name">
+
+          <!-- Header Cell -->
+          <th mat-header-cell *matHeaderCellDef [style.width]="column.width || 'auto'"
+            [mat-sort-header]="column.sortable ? column.name : ''" [disabled]="!column.sortable" class="column-header">
+            {{ column.label }}
+          </th>
+
+          <!-- Data Cell -->
+          <td mat-cell *matCellDef="let element" [ngClass]="{'actions-cell': column.type === 'actions'}"
+            (click)="column.type !== 'actions' ? onRowClicked(element) : null" class="data-cell">
+
+            <!-- Status Type -->
+            <ng-container *ngIf="column.type === 'status'">
+              <span class="status-badge" [ngClass]="{
+                      'status-active': getColumnValue(element, column) === true ||
+                                     getColumnValue(element, column) === 'ACTIVE' ||
+                                     getColumnValue(element, column) === 'COMPLETED' ||
+                                     getColumnValue(element, column) === 'IN_PROGRESS',
+                      'status-inactive': getColumnValue(element, column) === false ||
+                                       getColumnValue(element, column) === 'INACTIVE' ||
+                                       getColumnValue(element, column) === 'CANCELLED' ||
+                                       getColumnValue(element, column) === 'DRAFT'
+                    }">
+                {{ getColumnValue(element, column) }}
+              </span>
+            </ng-container>
+
+            <!-- Actions Type -->
+            <ng-container *ngIf="column.type === 'actions'">
+              <div class="actions-container">
+                <button mat-icon-button (click)="onActionClick('view', element)" class="view-btn">
+                  <mat-icon svgIcon="feather:eye"></mat-icon>
+                </button>
+                <button mat-icon-button (click)="onActionClick('edit', element)" class="edit-btn">
+                  <mat-icon svgIcon="feather:edit-2"></mat-icon>
+                </button>
+                <button mat-icon-button (click)="onActionClick('delete', element)" class="delete-btn">
+                  <mat-icon svgIcon="feather:trash-2"></mat-icon>
+                </button>
+              </div>
+            </ng-container>
+
+            <!-- Default Cell Content -->
+            <ng-container *ngIf="column.type !== 'status' && column.type !== 'actions'">
+              {{ getColumnValue(element, column) }}
+            </ng-container>
+
+          </td>
+        </ng-container>
+      </ng-container>
+
+      <!-- Empty State -->
+      <tr class="mat-row" *matNoDataRow>
+        <td class="empty-state" [attr.colspan]="displayedColumns.length">
+          <div class="empty-message">
+            <mat-icon svgIcon="feather:inbox" class="empty-icon"></mat-icon>
+            <span>{{ emptyMessage }}</span>
+          </div>
+        </td>
+      </tr>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="data-row"></tr>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <mat-paginator *ngIf="showPagination" [length]="totalItems" [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions"
+    [pageIndex]="currentPage" (page)="onPageChange($event)" aria-label="Select page">
+  </mat-paginator>
+</div>

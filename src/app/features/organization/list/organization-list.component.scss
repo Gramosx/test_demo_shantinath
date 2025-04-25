@@ -1,0 +1,19 @@
+// Component specific styles
+mat-form-field {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  mat-form-field {
+    width: 20rem;
+  }
+}
+
+// Button styling
+button[mat-raised-button] {
+  height: 40px;
+
+  .mat-icon {
+    margin-right: 8px;
+  }
+}

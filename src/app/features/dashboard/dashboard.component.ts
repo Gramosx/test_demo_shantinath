@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { RouterLink } from '@angular/router';
-import { TenderService } from '../../core/services/tender.service';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { TenderStats } from '../../core/types/models';
+import { IconsModule } from '../../shared/icons/icons.module';
 
 @Component({
     selector: 'app-dashboard',
@@ -15,34 +15,25 @@ import { TenderStats } from '../../core/types/models';
         MatCardModule,
         MatIconModule,
         MatButtonModule,
-        RouterLink
+        RouterLink,
+        IconsModule
     ],
     templateUrl: './dashboard.component.html',
     styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit {
     stats: TenderStats | null = null;
-    loading = true;
+    loading = false;
     error = '';
 
-    constructor(private tenderService: TenderService) { }
+    constructor(private route: ActivatedRoute) { }
 
     ngOnInit(): void {
-        this.loadStats();
-    }
-
-    loadStats(): void {
         this.loading = true;
-        this.tenderService.getTenderStats().subscribe({
-            next: (stats) => {
-                this.stats = stats;
-                this.loading = false;
-            },
-            error: (error) => {
-                this.error = 'Failed to load dashboard statistics';
-                this.loading = false;
-                console.error('Error loading stats:', error);
-            }
+        // Get resolved stats data
+        this.route.data.subscribe(data => {
+            this.stats = data['stats'];
+            this.loading = false;
         });
     }
 }

@@ -1,71 +1,122 @@
-<div class="dashboard-container">
-    <h1 class="page-title">Dashboard</h1>
+<div class="p-6">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Dashboard</h1>
 
-    <div *ngIf="loading" class="loading-indicator">
-        Loading dashboard statistics...
+    <div *ngIf="loading" class="flex justify-center items-center p-8">
+        <div class="text-gray-500">
+            <mat-icon svgIcon="feather:loader" class="animate-spin mr-2"></mat-icon>
+            <span>Loading dashboard statistics...</span>
+        </div>
     </div>
 
-    <div *ngIf="error" class="error-message">
-        {{ error }}
+    <div *ngIf="error" class="bg-red-50 text-red-700 p-4 rounded-lg mb-6">
+        <div class="flex items-center">
+            <mat-icon svgIcon="feather:alert-circle" class="text-red-500 mr-2"></mat-icon>
+            {{ error }}
+        </div>
     </div>
 
-    <div *ngIf="!loading && stats" class="stats-container">
-        <mat-card class="stat-card">
-            <mat-card-content>
-                <div class="stat-value">{{ stats.total }}</div>
-                <div class="stat-label">Total Tenders</div>
+    <div *ngIf="!loading && stats" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Tenders Card -->
+        <mat-card class="rounded-xl shadow-md transition-all duration-300 hover:shadow-lg overflow-hidden">
+            <div class="bg-blue-50 p-4">
+                <mat-icon svgIcon="feather:file-text" class="text-blue-500"></mat-icon>
+            </div>
+            <mat-card-content class="p-4">
+                <div class="text-3xl font-bold text-gray-800">{{ stats.total }}</div>
+                <div class="text-sm text-gray-500 mt-1">Total Tenders</div>
             </mat-card-content>
-            <mat-card-actions>
-                <button mat-button color="primary" routerLink="/tenders">View All</button>
+            <mat-card-actions class="bg-gray-50 p-2">
+                <button mat-button class="text-blue-600 hover:text-blue-800" routerLink="/tenders">
+                    <span class="flex items-center">
+                        View All
+                        <mat-icon svgIcon="feather:arrow-right" class="text-sm ml-1"></mat-icon>
+                    </span>
+                </button>
             </mat-card-actions>
         </mat-card>
 
-        <mat-card class="stat-card">
-            <mat-card-content>
-                <div class="stat-value">{{ stats.active }}</div>
-                <div class="stat-label">Active Tenders</div>
+        <!-- Active Tenders Card -->
+        <mat-card class="rounded-xl shadow-md transition-all duration-300 hover:shadow-lg overflow-hidden">
+            <div class="bg-green-50 p-4">
+                <mat-icon svgIcon="feather:clock" class="text-green-500"></mat-icon>
+            </div>
+            <mat-card-content class="p-4">
+                <div class="text-3xl font-bold text-gray-800">{{ stats.active }}</div>
+                <div class="text-sm text-gray-500 mt-1">Active Tenders</div>
             </mat-card-content>
-            <mat-card-actions>
-                <button mat-button color="primary" [routerLink]="['/tenders']"
-                    [queryParams]="{status: 'IN_PROGRESS'}">View Active</button>
+            <mat-card-actions class="bg-gray-50 p-2">
+                <button mat-button class="text-green-600 hover:text-green-800" [routerLink]="['/tenders']"
+                    [queryParams]="{status: 'IN_PROGRESS'}">
+                    <span class="flex items-center">
+                        View Active
+                        <mat-icon svgIcon="feather:arrow-right" class="text-sm ml-1"></mat-icon>
+                    </span>
+                </button>
             </mat-card-actions>
         </mat-card>
 
-        <mat-card class="stat-card">
-            <mat-card-content>
-                <div class="stat-value">{{ stats.completed }}</div>
-                <div class="stat-label">Completed Tenders</div>
+        <!-- Completed Tenders Card -->
+        <mat-card class="rounded-xl shadow-md transition-all duration-300 hover:shadow-lg overflow-hidden">
+            <div class="bg-indigo-50 p-4">
+                <mat-icon svgIcon="feather:check-circle" class="text-indigo-500"></mat-icon>
+            </div>
+            <mat-card-content class="p-4">
+                <div class="text-3xl font-bold text-gray-800">{{ stats.completed }}</div>
+                <div class="text-sm text-gray-500 mt-1">Completed Tenders</div>
             </mat-card-content>
-            <mat-card-actions>
-                <button mat-button color="primary" [routerLink]="['/tenders']"
-                    [queryParams]="{status: 'COMPLETED'}">View Completed</button>
+            <mat-card-actions class="bg-gray-50 p-2">
+                <button mat-button class="text-indigo-600 hover:text-indigo-800" [routerLink]="['/tenders']"
+                    [queryParams]="{status: 'COMPLETED'}">
+                    <span class="flex items-center">
+                        View Completed
+                        <mat-icon svgIcon="feather:arrow-right" class="text-sm ml-1"></mat-icon>
+                    </span>
+                </button>
             </mat-card-actions>
         </mat-card>
 
-        <mat-card class="stat-card">
-            <mat-card-content>
-                <div class="stat-value">{{ stats.growth | percent:'1.1-1' }}</div>
-                <div class="stat-label">Monthly Growth</div>
-            </mat-card-content>
-        </mat-card>
-    </div>
-
-    <div *ngIf="!loading && stats" class="section">
-        <h2 class="section-title">Recent Activity</h2>
-        <mat-card>
-            <mat-card-content>
-                <div class="recent-info">
-                    <mat-icon color="primary">business</mat-icon>
-                    <span>{{ stats.newOrganizations }} new organizations this month</span>
+        <!-- Growth Card -->
+        <mat-card class="rounded-xl shadow-md transition-all duration-300 hover:shadow-lg overflow-hidden">
+            <div class="bg-amber-50 p-4">
+                <mat-icon svgIcon="feather:trending-up" class="text-amber-500"></mat-icon>
+            </div>
+            <mat-card-content class="p-4">
+                <div class="flex items-center">
+                    <div class="text-3xl font-bold"
+                        [ngClass]="{'text-green-600': stats.growth > 0, 'text-red-600': stats.growth < 0, 'text-gray-800': stats.growth === 0}">
+                        {{ stats.growth | percent:'1.1-1' }}
+                    </div>
+                    <mat-icon *ngIf="stats.growth > 0" svgIcon="feather:arrow-up" class="text-green-500 ml-1"></mat-icon>
+                    <mat-icon *ngIf="stats.growth < 0" svgIcon="feather:arrow-down" class="text-red-500 ml-1"></mat-icon>
                 </div>
-                <div class="recent-actions">
-                    <button mat-raised-button color="primary" routerLink="/tenders/new">
-                        <mat-icon>add</mat-icon>
-                        Create New Tender
+                <div class="text-sm text-gray-500 mt-1">Monthly Growth</div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+
+    <div *ngIf="!loading && stats" class="mb-6">
+        <h2 class="text-xl font-semibold text-gray-700 mb-4">Recent Activity</h2>
+        <mat-card class="rounded-lg shadow-md p-0">
+            <mat-card-content class="p-6">
+                <div class="flex items-center text-gray-700 mb-6">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+                        <mat-icon svgIcon="feather:briefcase" class="text-blue-500"></mat-icon>
+                    </div>
+                    <span class="font-medium">{{ stats.newOrganizations }} new organizations this month</span>
+                    </div>
+                    <div class="flex flex-wrap gap-4 border-t pt-4">
+                        <button mat-raised-button color="primary" routerLink="/tenders/new" class="py-2 px-4 rounded-md transition-colors">
+                            <span class="flex items-center">
+                                <mat-icon svgIcon="feather:plus" class="mr-2"></mat-icon>
+                                Create New Tender
+                        </span>
                     </button>
-                    <button mat-stroked-button color="accent" routerLink="/organizations/new">
-                        <mat-icon>business</mat-icon>
-                        Add Organization
+                    <button mat-stroked-button color="accent" routerLink="/organizations/new"
+                        class="py-2 px-4 rounded-md transition-colors">
+                        <span class="flex items-center">
+                            <mat-icon svgIcon="feather:briefcase" class="mr-2"></mat-icon>
+                            Add Organization
+                        </span>
                     </button>
                 </div>
             </mat-card-content>

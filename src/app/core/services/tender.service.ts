@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 import {
     Tender,
     TenderResponse,
@@ -39,43 +38,26 @@ export class TenderService {
         if (organization) params = params.set('organization', organization);
         if (country) params = params.set('country', country);
 
-        return this.http.get<TenderResponse>(this.apiUrl, { params }).pipe(
-            catchError(this.handleError)
-        );
+        return this.http.get<TenderResponse>(this.apiUrl, { params });
     }
 
     getTenderById(id: string): Observable<Tender> {
-        return this.http.get<Tender>(`${this.apiUrl}/${id}`).pipe(
-            catchError(this.handleError)
-        );
+        return this.http.get<Tender>(`${this.apiUrl}/${id}`);
     }
 
     createTender(data: CreateTenderDto): Observable<Tender> {
-        return this.http.post<Tender>(this.apiUrl, data).pipe(
-            catchError(this.handleError)
-        );
+        return this.http.post<Tender>(this.apiUrl, data);
     }
 
     updateTender(id: string, data: UpdateTenderDto): Observable<Tender> {
-        return this.http.put<Tender>(`${this.apiUrl}/${id}`, data).pipe(
-            catchError(this.handleError)
-        );
+        return this.http.put<Tender>(`${this.apiUrl}/${id}`, data);
     }
 
     deleteTender(id: string): Observable<Tender> {
-        return this.http.delete<Tender>(`${this.apiUrl}/${id}`).pipe(
-            catchError(this.handleError)
-        );
+        return this.http.delete<Tender>(`${this.apiUrl}/${id}`);
     }
 
     getTenderStats(): Observable<TenderStats> {
-        return this.http.get<TenderStats>(`${this.apiUrl}/stats`).pipe(
-            catchError(this.handleError)
-        );
-    }
-
-    private handleError(error: any) {
-        console.error('API error:', error);
-        return throwError(() => new Error(error.error?.message || 'An error occurred. Please try again.'));
+        return this.http.get<TenderStats>(`${this.apiUrl}/stats`);
     }
 }

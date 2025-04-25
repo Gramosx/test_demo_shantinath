@@ -1,7 +1,7 @@
 <div class="app-container">
   <mat-toolbar color="primary" class="toolbar">
     <button mat-icon-button (click)="toggleSidenav()">
-      <mat-icon>menu</mat-icon>
+      <mat-icon svgIcon="feather:menu"></mat-icon>
     </button>
     <span class="app-title">Tender Management System</span>
     <span class="spacer"></span>
@@ -9,15 +9,15 @@
     <div class="user-menu" *ngIf="currentUser">
       <button mat-button [matMenuTriggerFor]="userMenu">
         <span>{{ currentUser.fullName }}</span>
-        <mat-icon>arrow_drop_down</mat-icon>
+        <mat-icon svgIcon="feather:chevron-down"></mat-icon>
       </button>
       <mat-menu #userMenu="matMenu">
         <button mat-menu-item>
-          <mat-icon>account_circle</mat-icon>
+          <mat-icon svgIcon="feather:user"></mat-icon>
           <span>Profile</span>
         </button>
         <button mat-menu-item (click)="logout()">
-          <mat-icon>exit_to_app</mat-icon>
+          <mat-icon svgIcon="feather:log-out"></mat-icon>
           <span>Logout</span>
         </button>
       </mat-menu>
@@ -28,19 +28,19 @@
     <mat-sidenav [opened]="isSidenavOpen" [mode]="'side'" class="sidenav">
       <mat-nav-list>
         <a mat-list-item routerLink="/dashboard" routerLinkActive="active">
-          <mat-icon>dashboard</mat-icon>
+          <mat-icon svgIcon="feather:grid"></mat-icon>
           <span>Dashboard</span>
         </a>
         <a mat-list-item routerLink="/tenders" routerLinkActive="active">
-          <mat-icon>description</mat-icon>
+          <mat-icon svgIcon="feather:file-text"></mat-icon>
           <span>Tenders</span>
         </a>
         <a mat-list-item routerLink="/organizations" routerLinkActive="active">
-          <mat-icon>business</mat-icon>
+          <mat-icon svgIcon="feather:briefcase"></mat-icon>
           <span>Organizations</span>
         </a>
         <a mat-list-item routerLink="/holidays" routerLinkActive="active">
-          <mat-icon>event</mat-icon>
+          <mat-icon svgIcon="feather:calendar"></mat-icon>
           <span>Holidays</span>
         </a>
       </mat-nav-list>

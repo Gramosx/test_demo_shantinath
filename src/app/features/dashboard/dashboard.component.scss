@@ -1,113 +1,65 @@
-.dashboard-container {
-  padding: 16px;
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 
-.page-title {
-  font-size: 24px;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 24px;
-}
-
-.loading-indicator {
-  padding: 40px;
-  text-align: center;
-  color: #666;
-}
-
-.error-message {
-  background-color: #ffebee;
-  color: #d32f2f;
-  padding: 16px;
-  border-radius: 4px;
-  margin-bottom: 24px;
-}
-
-.stats-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 24px;
-  margin-bottom: 32px;
-}
-
-.stat-card {
-  width: 100%;
-  height: 100%;
-
-  mat-card-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 24px 16px;
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
   }
-
-  .stat-value {
-    font-size: 32px;
-    font-weight: 500;
-    color: #1976d2;
-    margin-bottom: 8px;
-  }
-
-  .stat-label {
-    font-size: 14px;
-    color: #666;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  mat-card-actions {
-    display: flex;
-    justify-content: center;
-    padding-bottom: 16px;
+  to {
+    transform: rotate(360deg);
   }
 }
 
-.section {
-  margin-bottom: 32px;
+// Card styling improvements
+mat-card {
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
 }
 
-.section-title {
-  font-size: 18px;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 16px;
+mat-card-content {
+  padding: 1rem;
 }
 
-.recent-info {
+// Icon styling for card headers
+.bg-blue-50, .bg-green-50, .bg-indigo-50, .bg-amber-50, .rounded-full {
   display: flex;
   align-items: center;
-  margin-bottom: 24px;
+  justify-content: center;
 
   mat-icon {
+    height: 24px;
+    width: 24px;
+  }
+}
+
+// Button styling
+button[mat-raised-button], button[mat-stroked-button] {
+  height: 40px;
+
+  .mat-icon {
     margin-right: 8px;
   }
 }
 
-.recent-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-
-  button {
-    display: flex;
-    align-items: center;
-
-    mat-icon {
-      margin-right: 8px;
-    }
-  }
+// Stats text
+.text-3xl {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
 }
 
-@media (max-width: 600px) {
-  .stats-container {
-    grid-template-columns: 1fr;
-  }
+.text-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
 
-  .recent-actions {
-    flex-direction: column;
-
-    button {
-      width: 100%;
-    }
-  }
+.text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
 }

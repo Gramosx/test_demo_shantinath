@@ -1,117 +1,147 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
-import { RouterLink } from '@angular/router';
-import { Organization } from '../../../core/types/models';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { PageEvent } from '@angular/material/paginator';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { Organization, OrganizationResponse } from '../../../core/types/models';
+import { DataTableComponent, TableColumn } from '../../../shared/components/data-table/data-table.component';
+import { IconsModule } from '../../../shared/icons/icons.module';
 
 @Component({
-    selector: 'app-organization-list',
-    standalone: true,
-    imports: [
-        CommonModule,
-        MatTableModule,
-        MatButtonModule,
-        MatIconModule,
-        MatCardModule,
-        RouterLink
-    ],
-    template: `
-    <div class="organization-list-container">
-      <h1 class="page-title">Organizations</h1>
-
-      <div class="actions">
-        <button mat-raised-button color="primary" routerLink="new">
-          <mat-icon>add</mat-icon> Add Organization
-        </button>
-      </div>
-
-      <mat-card>
-        <mat-card-content>
-          <table mat-table [dataSource]="organizations" class="organization-table">
-            <ng-container matColumnDef="name">
-              <th mat-header-cell *matHeaderCellDef>Name</th>
-              <td mat-cell *matCellDef="let org">{{ org.name }}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="alias">
-              <th mat-header-cell *matHeaderCellDef>Alias</th>
-              <td mat-cell *matCellDef="let org">{{ org.alias }}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="country">
-              <th mat-header-cell *matHeaderCellDef>Country</th>
-              <td mat-cell *matCellDef="let org">{{ org.country }}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef>Status</th>
-              <td mat-cell *matCellDef="let org">
-                <span class="status-badge" [ngClass]="{'active': org.isActive, 'inactive': !org.isActive}">
-                  {{ org.isActive ? 'Active' : 'Inactive' }}
-                </span>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef>Actions</th>
-              <td mat-cell *matCellDef="let org">
-                <button mat-icon-button color="primary" [routerLink]="[org._id]">
-                  <mat-icon>visibility</mat-icon>
-                </button>
-                <button mat-icon-button color="accent" [routerLink]="['edit', org._id]">
-                  <mat-icon>edit</mat-icon>
-                </button>
-              </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-          </table>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  `,
-    styles: [`
-    .organization-list-container {
-      padding: 20px;
-    }
-
-    .actions {
-      margin-bottom: 20px;
-    }
-
-    .organization-table {
-      width: 100%;
-    }
-
-    .status-badge {
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-    }
-
-    .active {
-      background-color: #e6f7e6;
-      color: #2e7d32;
-    }
-
-    .inactive {
-      background-color: #ffebee;
-      color: #c62828;
-    }
-  `]
+  selector: 'app-organization-list',
+  standalone: true,
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatIconModule,
+    MatCardModule,
+    MatInputModule,
+    MatFormFieldModule,
+    RouterLink,
+    ReactiveFormsModule,
+    DataTableComponent,
+    IconsModule
+  ],
+  templateUrl: './organization-list.component.html',
+  styleUrls: ['./organization-list.component.scss']
 })
 export class OrganizationListComponent implements OnInit {
-    organizations: Organization[] = [];
-    displayedColumns: string[] = ['name', 'alias', 'country', 'status', 'actions'];
-
-    constructor() { }
-
-    ngOnInit(): void {
-        // This would be populated with actual organization data from a service
-        this.organizations = [];
+  organizations: Organization[] = [];
+  tableColumns: TableColumn[] = [
+    {
+      name: 'name',
+      label: 'Name',
+      sortable: true
+    },
+    {
+      name: 'alias',
+      label: 'Alias',
+      sortable: true
+    },
+    {
+      name: 'country',
+      label: 'Country',
+      sortable: true
+    },
+    {
+      name: 'isActive',
+      label: 'Status',
+      type: 'status',
+      cell: (element: Organization) => element.isActive ? 'Active' : 'Inactive'
+    },
+    {
+      name: 'actions',
+      label: 'Actions',
+      type: 'actions'
     }
+  ];
+
+  // Pagination
+  currentPage = 0;
+  pageSize = 10;
+  totalItems = 0;
+  loading = false;
+
+  // Search
+  searchControl = new FormControl('');
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router
+  ) { }
+
+  ngOnInit(): void {
+    // Get data from resolver
+    this.route.data.subscribe((data: any) => {
+      const organizationData: OrganizationResponse = data.organizationData;
+      this.organizations = organizationData.data;
+      this.totalItems = organizationData.total;
+    });
+
+    // Setup search with debounce
+    this.searchControl.valueChanges.pipe(
+      debounceTime(400),
+      distinctUntilChanged()
+    ).subscribe(value => {
+      this.onSearch(value || '');
+    });
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.currentPage = event.pageIndex;
+    this.pageSize = event.pageSize;
+
+    this.loading = true;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        page: this.currentPage + 1,
+        limit: this.pageSize,
+        search: this.searchControl.value || undefined
+      },
+      queryParamsHandling: 'merge'
+    }).finally(() => {
+      this.loading = false;
+    });
+  }
+
+  onSearch(searchTerm: string): void {
+    this.currentPage = 0; // Reset to first page on new search
+    this.loading = true;
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        page: 1,
+        limit: this.pageSize,
+        search: searchTerm || undefined
+      },
+      queryParamsHandling: 'merge'
+    }).finally(() => {
+      this.loading = false;
+    });
+  }
+
+  onActionClick(event: { action: string, row: Organization }): void {
+    const { action, row } = event;
+
+    switch (action) {
+      case 'view':
+        this.router.navigate([row._id], { relativeTo: this.route });
+        break;
+      case 'edit':
+        this.router.navigate(['edit', row._id], { relativeTo: this.route });
+        break;
+      case 'delete':
+        // Implement delete functionality or confirmation dialog
+        console.log('Delete organization:', row);
+        break;
+    }
+  }
 }

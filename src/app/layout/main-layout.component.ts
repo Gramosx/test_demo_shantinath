@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { AuthService } from '../core/services/auth.service';
 import { User } from '../core/types/models';
+import { IconsModule } from '../shared/icons/icons.module';
 
 @Component({
     selector: 'app-main-layout',
@@ -21,7 +22,8 @@ import { User } from '../core/types/models';
         MatListModule,
         MatIconModule,
         MatButtonModule,
-        MatMenuModule
+        MatMenuModule,
+        IconsModule
     ],
     templateUrl: './main-layout.component.html',
     styleUrls: ['./main-layout.component.scss']

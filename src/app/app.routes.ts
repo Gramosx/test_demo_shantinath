@@ -4,6 +4,7 @@ import { roleGuard } from './core/guards/role.guard';
 import { MainLayoutComponent } from './layout/main-layout.component';
 import { LoginComponent } from './auth/components/login.component';
 import { UserRole } from './core/types/enums';
+import { tenderStatsResolver } from './core/resolvers/tender.resolver';
 
 export const routes: Routes = [
     {
@@ -25,7 +26,10 @@ export const routes: Routes = [
         children: [
             {
                 path: 'dashboard',
-                loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
+                loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
+                resolve: {
+                    stats: tenderStatsResolver
+                }
             },
             {
                 path: 'organizations',
