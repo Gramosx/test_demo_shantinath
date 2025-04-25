@@ -1,0 +1,42 @@
+<div class="user-list-container">
+  <div class="user-list-header">
+    <h2>User Management</h2>
+    <button [routerLink]="['/users/new']" class="add-user-btn">Add New User</button>
+  </div>
+
+  <div *ngIf="loading" class="loading-indicator">
+    Loading users...
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <table *ngIf="!loading && users.length > 0" class="user-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users">
+        <td>{{ user.id }}</td>
+        <td>{{ user.name }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.role }}</td>
+        <td class="actions">
+          <button [routerLink]="['/users/edit', user.id]" class="edit-btn">Edit</button>
+          <button (click)="deleteUser(user.id || 0)" class="delete-btn">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="!loading && users.length === 0" class="no-users">
+    No users found. Click "Add New User" to create one.
+  </div>
+</div>

@@ -1,0 +1,33 @@
+@use '@angular/material' as mat;
+
+// Define the palettes
+$primary-palette: mat.define-palette(mat.$blue-palette);
+$accent-palette: mat.define-palette(mat.$pink-palette);
+$warn-palette: mat.define-palette(mat.$red-palette);
+
+// Create the theme
+$custom-theme: mat.define-light-theme((
+  color: (
+    primary: $primary-palette,
+    accent: $accent-palette,
+    warn: $warn-palette
+  )
+));
+
+// Export color values
+$primary-color: mat.get-color-from-palette($primary-palette, 500);
+$accent-color: mat.get-color-from-palette($accent-palette, 500);
+$warn-color: mat.get-color-from-palette($warn-palette, 500);
+
+// Export utility classes
+.bg-primary {
+  background-color: $primary-color !important;
+}
+
+.bg-accent {
+  background-color: $accent-color !important;
+}
+
+.bg-warn {
+  background-color: $warn-color !important;
+}

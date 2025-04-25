@@ -1,0 +1,29 @@
+@use "@angular/material" as mat;
+@use "variables" as *;
+@use "layouts/transitions" as *;
+@use "helpers/color" as *;
+@use "helpers/icon-size" as *;
+@use "themecolors/default_theme" as theme;
+@use "overrides/materialoverrides" as *;
+@use "container" as *;
+@use "layouts/layouts" as *;
+@use "grid/grid" as *;
+@use "helpers/custom-flex" as *;
+@use "helpers/index" as *;
+@use "pages/dashboards" as *;
+@use "pages/auth" as *;
+
+@include mat.core();
+@include mat.all-component-themes(theme.$custom-theme);
+
+//container layout
+@import "overrides/materialoverrides";
+@import "container";
+@import "layouts/layouts";
+@import "grid/grid";
+@import "helpers/custom-flex";
+@import "helpers/index";
+
+// pages
+@import "pages/dashboards";
+@import "pages/auth";
