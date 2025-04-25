@@ -1,55 +1,132 @@
-<div class="app-container">
-  <mat-toolbar color="primary" class="toolbar">
-    <button mat-icon-button (click)="toggleSidenav()">
-      <mat-icon svgIcon="feather:menu"></mat-icon>
-    </button>
-    <span class="app-title">Tender Management System</span>
-    <span class="spacer"></span>
-
-    <div class="user-menu" *ngIf="currentUser">
-      <button mat-button [matMenuTriggerFor]="userMenu">
-        <span>{{ currentUser.fullName }}</span>
-        <mat-icon svgIcon="feather:chevron-down"></mat-icon>
-      </button>
-      <mat-menu #userMenu="matMenu">
-        <button mat-menu-item>
-          <mat-icon svgIcon="feather:user"></mat-icon>
-          <span>Profile</span>
-        </button>
-        <button mat-menu-item (click)="logout()">
-          <mat-icon svgIcon="feather:log-out"></mat-icon>
-          <span>Logout</span>
-        </button>
-      </mat-menu>
-    </div>
-  </mat-toolbar>
-
-  <mat-sidenav-container class="sidenav-container">
-    <mat-sidenav [opened]="isSidenavOpen" [mode]="'side'" class="sidenav">
-      <mat-nav-list>
-        <a mat-list-item routerLink="/dashboard" routerLinkActive="active">
-          <mat-icon svgIcon="feather:grid"></mat-icon>
-          <span>Dashboard</span>
-        </a>
-        <a mat-list-item routerLink="/tenders" routerLinkActive="active">
-          <mat-icon svgIcon="feather:file-text"></mat-icon>
-          <span>Tenders</span>
-        </a>
-        <a mat-list-item routerLink="/organizations" routerLinkActive="active">
-          <mat-icon svgIcon="feather:briefcase"></mat-icon>
-          <span>Organizations</span>
-        </a>
-        <a mat-list-item routerLink="/holidays" routerLinkActive="active">
-          <mat-icon svgIcon="feather:calendar"></mat-icon>
-          <span>Holidays</span>
-        </a>
-      </mat-nav-list>
-    </mat-sidenav>
-
-    <mat-sidenav-content class="content">
-      <div class="content-container">
-        <router-outlet></router-outlet>
+<div class="min-h-screen flex flex-col">
+  <!-- Main header -->
+  <header class="bg-white border-b border-gray-200 py-2 px-4 flex items-center justify-between">
+    <div class="flex items-center">
+      <div class="flex items-center mr-8">
+        <span class="text-xl font-semibold flex items-center">
+          <span class="flex items-center justify-center bg-purple-100 text-purple-600 w-10 h-10 rounded-full mr-2">
+            <span class="text-lg font-bold">SE</span>
+          </span>
+          SEPIPL
+        </span>
       </div>
-    </mat-sidenav-content>
-  </mat-sidenav-container>
+    </div>
+    <div>
+      <div class="relative" *ngIf="currentUser">
+        <button (click)="toggleUserMenu()"
+          class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-white focus:outline-none focus:ring-2 focus:ring-primary-400">
+          <img [src]="'https://ui-avatars.com/api/?name=' + (currentUser.fullName || 'User') + '&background=random'"
+            alt="User" class="w-full h-full object-cover">
+        </button>
+
+        <div *ngIf="isUserMenuOpen" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 user-dropdown">
+          <div class="px-4 py-2 border-b border-gray-100">
+            <div class="text-sm font-medium text-gray-800">{{ currentUser.fullName }}</div>
+            <div class="text-xs text-gray-500 truncate">{{ currentUser.email }}</div>
+          </div>
+          <a routerLink="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+            Profile
+          </a>
+          <a routerLink="/account/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+            Settings
+          </a>
+          <button (click)="logout()" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+            Sign out
+          </button>
+        </div>
+      </div>
+
+      <a *ngIf="!currentUser" routerLink="/auth/login"
+        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">
+        Sign in
+      </a>
+      </div>
+      </header>
+
+      <div class="flex flex-1">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white border-r border-gray-200">
+          <div class="p-4">
+            <div class="text-gray-500 font-medium text-sm mb-4">HOME</div>
+            <nav>
+              <a routerLink="/dashboard" routerLinkActive="bg-blue-50 text-blue-600"
+                class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md">
+                <mat-icon svgIcon="feather:grid" class="w-5 h-5 mr-3"></mat-icon>
+                Dashboard
+              </a>
+
+              <div class="mt-8 mb-4 text-gray-500 font-medium text-sm">TENDER MANAGEMENT</div>
+
+              <a routerLink="/tenders" routerLinkActive="bg-blue-50 text-blue-600"
+                class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md">
+                <mat-icon svgIcon="feather:package" class="w-5 h-5 mr-3"></mat-icon>
+                All Tenders
+              </a>
+
+              <a routerLink="/tenders" [queryParams]="{status: 'IN_PROGRESS'}" routerLinkActive="bg-blue-50 text-blue-600"
+                class="flex items-center px-4 py-3 pl-12 text-gray-700 hover:bg-gray-50 rounded-md">
+                <mat-icon svgIcon="feather:filter" class="w-5 h-5 mr-3"></mat-icon>
+                <span class="text-sm">Open Tenders</span>
+              </a>
+
+              <a routerLink="/tenders" [queryParams]="{upcoming: 'true'}" routerLinkActive="bg-blue-50 text-blue-600"
+                class="flex items-center px-4 py-3 pl-12 text-gray-700 hover:bg-gray-50 rounded-md">
+                <mat-icon svgIcon="feather:calendar" class="w-5 h-5 mr-3"></mat-icon>
+                <span class="text-sm">Upcoming Dues</span>
+              </a>
+
+              <a routerLink="/tenders/new" routerLinkActive="bg-blue-50 text-blue-600"
+                class="flex items-center px-4 py-3 pl-12 text-gray-700 hover:bg-gray-50 rounded-md">
+                <mat-icon svgIcon="feather:plus" class="w-5 h-5 mr-3"></mat-icon>
+                <span class="text-sm">Create New</span>
+              </a>
+
+              <a routerLink="/organizations" routerLinkActive="bg-blue-50 text-blue-600"
+                class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md">
+                <mat-icon svgIcon="feather:users" class="w-5 h-5 mr-3"></mat-icon>
+                Organizations
+              </a>
+
+              <a routerLink="/holidays" routerLinkActive="bg-blue-50 text-blue-600"
+                class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md">
+                <mat-icon svgIcon="feather:calendar" class="w-5 h-5 mr-3"></mat-icon>
+                Holidays
+              </a>
+
+              <div class="mt-8 mb-4 text-gray-500 font-medium text-sm">AUTH</div>
+
+              <a *ngIf="!currentUser" routerLink="/auth/login" routerLinkActive="bg-blue-50 text-blue-600"
+                class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md">
+                <mat-icon svgIcon="feather:log-in" class="w-5 h-5 mr-3"></mat-icon>
+                Login
+              </a>
+<a routerLink="/auth/register" routerLinkActive="bg-blue-50 text-blue-600"
+  class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md">
+  <mat-icon svgIcon="feather:user-plus" class="w-5 h-5 mr-3"></mat-icon>
+  Register
+</a>
+<div *ngIf="currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN'"
+  class="mt-8 mb-4 text-gray-500 font-medium text-sm">ADMINISTRATION</div>
+
+<a *ngIf="currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN'" routerLink="/organizations/new"
+  routerLinkActive="bg-blue-50 text-blue-600"
+  class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md">
+  <mat-icon svgIcon="feather:users" class="w-5 h-5 mr-3"></mat-icon>
+  New Organization
+</a>
+<a *ngIf="currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN'" routerLink="/holidays/new"
+  routerLinkActive="bg-blue-50 text-blue-600"
+  class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md">
+  <mat-icon svgIcon="feather:calendar-plus" class="w-5 h-5 mr-3"></mat-icon>
+  New Holiday
+</a>
+            </nav>
+            </div>
+            </aside>
+
+    <!-- Main content -->
+    <main class="flex-1 bg-gray-50 p-6 overflow-y-auto">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
 </div>

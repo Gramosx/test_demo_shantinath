@@ -29,6 +29,7 @@
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss","stylePreprocessorOptions": {"includePaths": ["src/styles"]},
             "assets": [
+              "src/assets/icons",
               {
                 "glob": "**/*",
                 "input": "public"
@@ -88,6 +89,7 @@
             "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "scss","stylePreprocessorOptions": {"includePaths": ["src/styles"]},
             "assets": [
+              "src/assets/icons",
               {
                 "glob": "**/*",
                 "input": "public"

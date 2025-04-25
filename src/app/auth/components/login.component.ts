@@ -1,12 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../core/services/auth.service';
 import { LoginDto } from '../../core/types/models';
 
@@ -16,14 +11,9 @@ import { LoginDto } from '../../core/types/models';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatCardModule,
-    MatInputModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatProgressSpinnerModule
+    RouterModule
   ],
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss']
+  templateUrl: './login.component.html'
 })
 export class LoginComponent {
   loginForm: FormGroup;
@@ -40,8 +30,8 @@ export class LoginComponent {
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
 
     this.loginForm = this.formBuilder.group({
-      email: ['', [Validators.required]],
-      password: ['', [Validators.required]]
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
 
@@ -49,6 +39,11 @@ export class LoginComponent {
 
   onSubmit(): void {
     if (this.loginForm.invalid) {
+      // Mark all fields as touched to trigger validation messages
+      Object.keys(this.f).forEach(key => {
+        const control = this.f[key];
+        control.markAsTouched();
+      });
       return;
     }
 
@@ -65,7 +60,7 @@ export class LoginComponent {
         this.router.navigate([this.returnUrl]);
       },
       error: (error) => {
-        this.error = error.message;
+        this.error = error.message || 'Invalid email or password';
         this.loading = false;
       }
     });

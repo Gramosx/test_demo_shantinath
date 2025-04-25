@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Tender } from '../../../core/types/models';
 import { TenderStatus, TenderType, TenderTOC, TenderStage } from '../../../core/types/enums';
+import { IconsModule } from '../../../shared/icons/icons.module';
 
 @Component({
   selector: 'app-tender-detail',
@@ -17,7 +18,8 @@ import { TenderStatus, TenderType, TenderTOC, TenderStage } from '../../../core/
     MatCardModule,
     MatChipsModule,
     MatIconModule,
-    RouterLink
+    RouterLink,
+    IconsModule
   ],
   template: `
     <div class="tender-detail-container">
@@ -25,10 +27,12 @@ import { TenderStatus, TenderType, TenderTOC, TenderStage } from '../../../core/
         <h1 class="page-title">{{ tender?.title }}</h1>
         <div class="actions">
           <button mat-raised-button color="accent" [routerLink]="['/tenders/edit', tender?._id]">
-            <mat-icon>edit</mat-icon> Edit
+            <mat-icon svgIcon="feather:edit" class="icon"></mat-icon>
+            Edit
           </button>
           <button mat-stroked-button routerLink="/tenders">
-            <mat-icon>arrow_back</mat-icon> Back to List
+            <mat-icon svgIcon="feather:arrow-left" class="icon"></mat-icon>
+            Back to List
           </button>
         </div>
       </div>
@@ -197,6 +201,20 @@ import { TenderStatus, TenderType, TenderTOC, TenderStage } from '../../../core/
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
+    }
+
+    .icon {
+      width: 18px !important;
+      height: 18px !important;
+      margin-right: 4px;
+      vertical-align: middle;
+      font-size: 18px;
+      display: inline-flex;
+    }
+
+    button .icon {
+      display: inline-flex;
+      align-items: center;
     }
 
     .actions {

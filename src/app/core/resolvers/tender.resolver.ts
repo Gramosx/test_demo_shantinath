@@ -19,8 +19,9 @@ export const tenderListResolver: ResolveFn<TenderResponse> = (
     const country = route.queryParams['country'];
     const page = route.queryParams['page'] ? parseInt(route.queryParams['page']) : 1;
     const limit = route.queryParams['limit'] ? parseInt(route.queryParams['limit']) : 10;
+    const upcoming = route.queryParams['upcoming'] === 'true';
 
-    return tenderService.getTenders(search, status, type, organization, country, page, limit).pipe(
+    return tenderService.getTenders(search, status, type, organization, country, page, limit, upcoming).pipe(
         catchError(error => {
             console.error('Error loading tenders:', error);
             // Return empty data in case of error

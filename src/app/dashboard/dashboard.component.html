@@ -1,43 +1,119 @@
-<div class="dashboard-container">
-  <header class="dashboard-header">
-    <div class="logo">
-      TMS Dashboard
-    </div>
-    <div class="user-info" *ngIf="currentUser">
-      <span>Welcome, {{ currentUser.name }}</span>
-      <button (click)="logout()" class="logout-btn">Logout</button>
-    </div>
-  </header>
+<div class="p-6">
+  <div *ngIf="isLoading" class="flex justify-center items-center py-6">
+    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+  </div>
+<div *ngIf="error" class="mb-6 bg-red-100 text-red-700 p-4 rounded-md">
+  {{ error }}
+</div>
 
-  <div class="dashboard-content">
-    <nav class="sidebar">
-      <ul>
-        <li><a [routerLink]="['/dashboard']">Home</a></li>
-        <li><a [routerLink]="['/users']">Users</a></li>
-        <li><a [routerLink]="['/settings']">Settings</a></li>
-      </ul>
-    </nav>
-
-    <main class="main-content">
-      <div class="welcome-card">
-        <h2>Welcome to the Task Management System</h2>
-        <p>Select an option from the sidebar to get started</p>
-
-        <div class="stats">
-          <div class="stat-card">
-            <h3>5</h3>
-            <p>Active Users</p>
-          </div>
-          <div class="stat-card">
-            <h3>12</h3>
-            <p>Tasks</p>
-          </div>
-          <div class="stat-card">
-            <h3>3</h3>
-            <p>Completed</p>
+  <div *ngIf="!isLoading && !error" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <!-- Open Tenders Card -->
+    <div class="bg-white rounded-lg shadow p-6 relative">
+      <div class="flex justify-between items-center">
+        <div>
+          <h3 class="text-lg font-normal text-green-400">Open Tenders</h3>
+          <p class="text-4xl font-semibold mt-3">{{ openTenders }}</p>
+          <div class="flex items-center mt-3 text-green-500">
+            <span class="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                class="w-4 h-4 mr-1">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+              </svg>
+              +{{ openTrendPercent }}%
+            </span>
           </div>
         </div>
+        <div class="bg-blue-400 rounded-full p-3 text-white">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          </svg>
+        </div>
       </div>
-    </main>
+    </div>
+
+    <!-- Pending Actions Card -->
+    <div class="bg-white rounded-lg shadow p-6 relative">
+      <div class="flex justify-between items-center">
+        <div>
+          <h3 class="text-lg font-normal text-gray-600">Pending Actions</h3>
+          <p class="text-4xl font-semibold mt-3">{{ pendingActions }}</p>
+          <div class="flex items-center mt-3 text-red-500">
+            <span class="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                class="w-4 h-4 mr-1">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+              {{ pendingTrendPercent }}%
+            </span>
+          </div>
+        </div>
+        <div class="bg-orange-400 rounded-full p-3 text-white">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Closed Tenders Card -->
+    <div class="bg-white rounded-lg shadow p-6 relative">
+      <div class="flex justify-between items-center">
+        <div>
+          <h3 class="text-lg font-normal text-gray-600">Closed Tenders</h3>
+          <p class="text-4xl font-semibold mt-3">{{ closedTenders }}</p>
+          <div class="flex items-center mt-3 text-green-500">
+            <span class="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                class="w-4 h-4 mr-1">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+              </svg>
+              +{{ closedTrendPercent }}%
+            </span>
+          </div>
+        </div>
+        <div class="bg-blue-400 rounded-full p-3 text-white">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- Upcoming Due Projects Table -->
+<div *ngIf="!isLoading && upcomingProjects.length > 0" class="bg-white rounded-lg shadow p-6">
+  <h3 class="text-xl font-medium text-gray-800 mb-6">Upcoming Due Projects</h3>
+  <div class="overflow-x-auto">
+    <table class="min-w-full">
+      <thead>
+        <tr class="border-b border-gray-200">
+          <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">Assigned</th>
+          <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">Org. Name</th>
+          <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">Priority</th>
+          <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">Due Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="border-b border-gray-200" *ngFor="let project of upcomingProjects">
+          <td class="px-4 py-3">
+            <div class="text-sm text-gray-800">{{ project.name }}</div>
+            <div class="text-xs text-gray-500" *ngIf="project.role">{{ project.role }}</div>
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-800">{{ project.organization }}</td>
+          <td class="px-4 py-3">
+            <span [class]="getPriorityClass(project.priority)" class="px-2 py-1 text-xs rounded-full">
+              {{ project.priority }}
+            </span>
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-800">{{ project.dueDate }}</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+    </div>
+<div *ngIf="!isLoading && upcomingProjects.length === 0 && !error" class="bg-white rounded-lg shadow p-6 text-center">
+  <p class="text-gray-500">No upcoming projects found.</p>
   </div>
 </div>

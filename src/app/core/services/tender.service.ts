@@ -26,7 +26,8 @@ export class TenderService {
         organization?: string,
         country?: string,
         page: number = 1,
-        limit: number = 10
+        limit: number = 10,
+        upcoming?: boolean
     ): Observable<TenderResponse> {
         let params = new HttpParams()
             .set('page', page.toString())
@@ -37,6 +38,7 @@ export class TenderService {
         if (type) params = params.set('type', type);
         if (organization) params = params.set('organization', organization);
         if (country) params = params.set('country', country);
+        if (upcoming) params = params.set('upcoming', upcoming.toString());
 
         return this.http.get<TenderResponse>(this.apiUrl, { params });
     }
