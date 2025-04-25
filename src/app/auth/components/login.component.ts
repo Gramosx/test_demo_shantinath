@@ -11,63 +11,63 @@ import { AuthService } from '../../core/services/auth.service';
 import { LoginDto } from '../../core/types/models';
 
 @Component({
-    selector: 'app-login',
-    standalone: true,
-    imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        MatCardModule,
-        MatInputModule,
-        MatButtonModule,
-        MatFormFieldModule,
-        MatProgressSpinnerModule
-    ],
-    templateUrl: './login.component.html',
-    styleUrls: ['./login.component.scss']
+  selector: 'app-login',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatCardModule,
+    MatInputModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatProgressSpinnerModule
+  ],
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
-    loginForm: FormGroup;
-    loading = false;
-    error = '';
-    returnUrl: string;
+  loginForm: FormGroup;
+  loading = false;
+  error = '';
+  returnUrl: string;
 
-    constructor(
-        private formBuilder: FormBuilder,
-        private authService: AuthService,
-        private router: Router,
-        private route: ActivatedRoute
-    ) {
-        this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
+  constructor(
+    private formBuilder: FormBuilder,
+    private authService: AuthService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
 
-        this.loginForm = this.formBuilder.group({
-            username: ['', [Validators.required]],
-            password: ['', [Validators.required]]
-        });
+    this.loginForm = this.formBuilder.group({
+      email: ['', [Validators.required]],
+      password: ['', [Validators.required]]
+    });
+  }
+
+  get f() { return this.loginForm.controls; }
+
+  onSubmit(): void {
+    if (this.loginForm.invalid) {
+      return;
     }
 
-    get f() { return this.loginForm.controls; }
+    this.loading = true;
+    this.error = '';
 
-    onSubmit(): void {
-        if (this.loginForm.invalid) {
-            return;
-        }
+    const credentials: LoginDto = {
+      email: this.f['email'].value,
+      password: this.f['password'].value
+    };
 
-        this.loading = true;
-        this.error = '';
-
-        const credentials: LoginDto = {
-            username: this.f['username'].value,
-            password: this.f['password'].value
-        };
-
-        this.authService.login(credentials).subscribe({
-            next: () => {
-                this.router.navigate([this.returnUrl]);
-            },
-            error: (error) => {
-                this.error = error.message;
-                this.loading = false;
-            }
-        });
-    }
+    this.authService.login(credentials).subscribe({
+      next: () => {
+        this.router.navigate([this.returnUrl]);
+      },
+      error: (error) => {
+        this.error = error.message;
+        this.loading = false;
+      }
+    });
+  }
 }

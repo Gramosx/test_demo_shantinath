@@ -1,30 +1,49 @@
 import { Routes } from '@angular/router';
-import { DashboardComponent } from './dashboard/dashboard.component';
-import { AuthGuard } from './core/guards/auth.guard';
-import { AUTH_ROUTES } from './auth/auth.routes';
-import { USER_ROUTES } from './user/user.routes';
+import { authGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
+import { MainLayoutComponent } from './layout/main-layout.component';
+import { LoginComponent } from './auth/components/login.component';
+import { UserRole } from './core/types/enums';
 
 export const routes: Routes = [
     {
         path: '',
-        redirectTo: '/dashboard',
+        redirectTo: 'dashboard',
         pathMatch: 'full'
     },
     {
         path: 'auth',
-        children: AUTH_ROUTES
+        children: [
+            { path: 'login', component: LoginComponent },
+            { path: '', redirectTo: 'login', pathMatch: 'full' }
+        ]
     },
     {
-        path: 'dashboard',
-        component: DashboardComponent,
-        canActivate: [AuthGuard]
-    },
-    {
-        path: 'users',
-        children: USER_ROUTES
+        path: '',
+        component: MainLayoutComponent,
+        canActivate: [authGuard],
+        children: [
+            {
+                path: 'dashboard',
+                loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
+            },
+            {
+                path: 'organizations',
+                loadChildren: () => import('./features/organization/organization.routes').then(m => m.ORGANIZATION_ROUTES)
+            },
+            {
+                path: 'tenders',
+                loadChildren: () => import('./features/tender/tender.routes').then(m => m.TENDER_ROUTES)
+            },
+            {
+                path: 'holidays',
+                loadChildren: () => import('./features/holiday/holiday.routes').then(m => m.HOLIDAY_ROUTES),
+                canActivate: [roleGuard([UserRole.ADMIN, UserRole.SUPER_ADMIN])]
+            }
+        ]
     },
     {
         path: '**',
-        redirectTo: '/dashboard'
+        redirectTo: 'dashboard'
     }
 ];

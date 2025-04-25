@@ -1,10 +1,10 @@
 import { inject } from '@angular/core';
-import { Router, UrlTree } from '@angular/router';
+import { CanActivateFn, Router, UrlTree } from '@angular/router';
 import { Observable } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 
-export function authGuard(): Observable<boolean | UrlTree> {
+export const authGuard: CanActivateFn = (): Observable<boolean | UrlTree> => {
     const authService = inject(AuthService);
     const router = inject(Router);
 
@@ -17,4 +17,4 @@ export function authGuard(): Observable<boolean | UrlTree> {
             return router.createUrlTree(['/auth/login']);
         })
     );
-}
+};
