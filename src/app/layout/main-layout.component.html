@@ -108,12 +108,27 @@
 <div *ngIf="currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN'"
   class="mt-8 mb-4 text-gray-500 font-medium text-sm">ADMINISTRATION</div>
 
+<a *ngIf="currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN'" routerLink="/users"
+  routerLinkActive="bg-blue-50 text-blue-600"
+  class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md">
+  <mat-icon svgIcon="feather:users" class="w-5 h-5 mr-3"></mat-icon>
+  Users
+</a>
+
+<a *ngIf="currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN'" routerLink="/users/new"
+  routerLinkActive="bg-blue-50 text-blue-600"
+  class="flex items-center px-4 py-3 pl-12 text-gray-700 hover:bg-gray-50 rounded-md">
+  <mat-icon svgIcon="feather:user-plus" class="w-5 h-5 mr-3"></mat-icon>
+  <span class="text-sm">Add User</span>
+</a>
+
 <a *ngIf="currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN'" routerLink="/organizations/new"
   routerLinkActive="bg-blue-50 text-blue-600"
   class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md">
   <mat-icon svgIcon="feather:users" class="w-5 h-5 mr-3"></mat-icon>
   New Organization
 </a>
+
 <a *ngIf="currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN'" routerLink="/holidays/new"
   routerLinkActive="bg-blue-50 text-blue-600"
   class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-md">

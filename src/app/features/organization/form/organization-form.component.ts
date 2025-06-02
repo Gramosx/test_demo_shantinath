@@ -12,24 +12,26 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Country } from '../../../core/types/models';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
+import { OrganizationService } from '../../../core/services/organization.service';
+import { CountryService } from '../../../core/services/country.service';
 
 @Component({
-    selector: 'app-organization-form',
-    standalone: true,
-    imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        MatButtonModule,
-        MatCardModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatSelectModule,
-        MatIconModule,
-        MatChipsModule,
-        MatSlideToggleModule,
-        RouterLink
-    ],
-    template: `
+  selector: 'app-organization-form',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatIconModule,
+    MatChipsModule,
+    MatSlideToggleModule,
+    RouterLink
+  ],
+  template: `
     <div class="organization-form-container">
       <h1 class="page-title">{{ isEditMode ? 'Edit' : 'Add' }} Organization</h1>
 
@@ -110,7 +112,7 @@ import { COMMA, ENTER } from '@angular/cdk/keycodes';
       </mat-card>
     </div>
   `,
-    styles: [`
+  styles: [`
     .organization-form-container {
       padding: 20px;
     }
@@ -140,77 +142,125 @@ import { COMMA, ENTER } from '@angular/cdk/keycodes';
   `]
 })
 export class OrganizationFormComponent implements OnInit {
-    organizationForm: FormGroup;
-    isEditMode = false;
-    countries: Country[] = [];
-    separatorKeysCodes: number[] = [ENTER, COMMA];
+  organizationForm: FormGroup;
+  isEditMode = false;
+  countries: Country[] = [];
+  separatorKeysCodes: number[] = [ENTER, COMMA];
 
-    constructor(
-        private fb: FormBuilder,
-        private route: ActivatedRoute,
-        private router: Router
-    ) {
-        this.organizationForm = this.fb.group({
-            name: ['', Validators.required],
-            alias: ['', Validators.required],
-            address: ['', Validators.required],
-            country: ['', Validators.required],
-            units: this.fb.array([]),
-            isActive: [true]
-        });
-    }
+  get units() {
+    return this.organizationForm.get('units') as FormArray;
+  }
 
-    get units() {
-        return this.organizationForm.get('units') as FormArray;
-    }
+  constructor(
+    private fb: FormBuilder,
+    private route: ActivatedRoute,
+    private router: Router,
+    private organizationService: OrganizationService,
+    private countryService: CountryService
+  ) {
+    this.organizationForm = this.fb.group({
+      name: ['', Validators.required],
+      alias: ['', Validators.required],
+      address: ['', Validators.required],
+      country: ['', Validators.required],
+      units: this.fb.array([]),
+      isActive: [true]
+    });
+  }
 
-    ngOnInit(): void {
-        // Populate countries (would come from a service)
-        this.countries = [
-            { code: 'IN', name: 'India' },
-            { code: 'US', name: 'United States' },
-            { code: 'UK', name: 'United Kingdom' }
-        ];
+  ngOnInit(): void {
+    // Load countries
+    this.countryService.getCountries().subscribe(countries => {
+      this.countries = countries;
+    });
 
-        const id = this.route.snapshot.paramMap.get('id');
-        this.isEditMode = !!id;
+    const id = this.route.snapshot.paramMap.get('id');
+    this.isEditMode = !!id;
 
-        if (this.isEditMode) {
-            // This would fetch organization data from a service
-            // For now, we'll just log the ID
-            console.log('Editing organization with ID:', id);
+    if (this.isEditMode && id) {
+      this.organizationService.getOrganizationById(id).subscribe({
+        next: (organization) => {
+          if (organization) {
+            this.organizationForm.patchValue({
+              name: organization.name,
+              alias: organization.alias,
+              address: organization.address,
+              country: organization.country,
+              isActive: organization.isActive
+            });
+
+            // Clear existing units and add the ones from the organization
+            while (this.units.length) {
+              this.units.removeAt(0);
+            }
+            organization.units.forEach(unit => {
+              this.units.push(this.fb.control(unit));
+            });
+          } else {
+            this.router.navigate(['/organizations']);
+          }
+        },
+        error: (error) => {
+          console.error('Error loading organization:', error);
+          this.router.navigate(['/organizations']);
         }
+      });
+    }
+  }
+
+  addUnit(event: MatChipInputEvent): void {
+    const value = (event.value || '').trim();
+
+    if (value) {
+      this.units.push(this.fb.control(value));
     }
 
-    addUnit(event: MatChipInputEvent): void {
-        const value = (event.value || '').trim();
+    event.chipInput!.clear();
+  }
 
-        if (value) {
-            this.units.push(this.fb.control(value));
+  removeUnit(index: number): void {
+    if (index >= 0) {
+      this.units.removeAt(index);
+    }
+  }
+
+  onSubmit(): void {
+    if (this.organizationForm.invalid) {
+      return;
+    }
+
+    const formValue = this.organizationForm.value;
+    const organizationData = {
+      name: formValue.name,
+      alias: formValue.alias,
+      address: formValue.address,
+      country: formValue.country,
+      units: formValue.units,
+      isActive: formValue.isActive
+    };
+
+    const id = this.route.snapshot.paramMap.get('id');
+
+    if (this.isEditMode && id) {
+      this.organizationService.updateOrganization(id, organizationData).subscribe({
+        next: (organization) => {
+          if (organization) {
+            this.router.navigate(['/organizations']);
+          }
+        },
+        error: (error) => {
+          console.error('Error updating organization:', error);
         }
-
-        event.chipInput!.clear();
-    }
-
-    removeUnit(index: number): void {
-        this.units.removeAt(index);
-    }
-
-    onSubmit(): void {
-        if (this.organizationForm.invalid) {
-            return;
+      });
+    } else {
+      this.organizationService.createOrganization(organizationData).subscribe({
+        next: (organization) => {
+          this.router.navigate(['/organizations']);
+        },
+        error: (error) => {
+          console.error('Error creating organization:', error);
         }
-
-        const orgData = this.organizationForm.value;
-
-        if (this.isEditMode) {
-            // This would call a service to update the organization
-            console.log('Update organization:', orgData);
-        } else {
-            // This would call a service to create the organization
-            console.log('Create organization:', orgData);
-        }
-
-        this.router.navigate(['/organizations']);
+      });
     }
+  }
 }

@@ -12,6 +12,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { Organization, OrganizationResponse } from '../../../core/types/models';
 import { DataTableComponent, TableColumn } from '../../../shared/components/data-table/data-table.component';
 import { IconsModule } from '../../../shared/icons/icons.module';
+import { OrganizationService } from '../../../core/services/organization.service';
 
 @Component({
   selector: 'app-organization-list',
@@ -73,7 +74,8 @@ export class OrganizationListComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private organizationService: OrganizationService
   ) { }
 
   ngOnInit(): void {
@@ -98,16 +100,21 @@ export class OrganizationListComponent implements OnInit {
     this.pageSize = event.pageSize;
 
     this.loading = true;
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: {
-        page: this.currentPage + 1,
-        limit: this.pageSize,
-        search: this.searchControl.value || undefined
+    this.organizationService.getOrganizations(
+      undefined,
+      this.searchControl.value || undefined,
+      this.currentPage + 1,
+      this.pageSize
+    ).subscribe({
+      next: (response) => {
+        this.organizations = response.data;
+        this.totalItems = response.total;
+        this.loading = false;
       },
-      queryParamsHandling: 'merge'
-    }).finally(() => {
-      this.loading = false;
+      error: (error) => {
+        console.error('Error loading organizations:', error);
+        this.loading = false;
+      }
     });
   }
 
@@ -115,16 +122,21 @@ export class OrganizationListComponent implements OnInit {
     this.currentPage = 0; // Reset to first page on new search
     this.loading = true;
 
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: {
-        page: 1,
-        limit: this.pageSize,
-        search: searchTerm || undefined
+    this.organizationService.getOrganizations(
+      undefined,
+      searchTerm,
+      1,
+      this.pageSize
+    ).subscribe({
+      next: (response) => {
+        this.organizations = response.data;
+        this.totalItems = response.total;
+        this.loading = false;
       },
-      queryParamsHandling: 'merge'
-    }).finally(() => {
-      this.loading = false;
+      error: (error) => {
+        console.error('Error searching organizations:', error);
+        this.loading = false;
+      }
     });
   }
 
@@ -139,8 +151,19 @@ export class OrganizationListComponent implements OnInit {
         this.router.navigate(['edit', row._id], { relativeTo: this.route });
         break;
       case 'delete':
-        // Implement delete functionality or confirmation dialog
-        console.log('Delete organization:', row);
+        if (confirm(`Are you sure you want to delete organization ${row.name}?`)) {
+          this.organizationService.deleteOrganization(row._id!).subscribe({
+            next: (success) => {
+              if (success) {
+                // Reload the current page
+                this.onPageChange({ pageIndex: this.currentPage, pageSize: this.pageSize } as PageEvent);
+              }
+            },
+            error: (error) => {
+              console.error('Error deleting organization:', error);
+            }
+          });
+        }
         break;
     }
   }

@@ -16,6 +16,8 @@ import { TenderType, TenderTOC, TenderStatus, TenderStage } from '../../../core/
 import { Country, Organization, TenderDates } from '../../../core/types/models';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { TenderService } from '../../../core/services/tender.service';
+import { OrganizationService } from '../../../core/services/organization.service';
+import { CountryService } from '../../../core/services/country.service';
 import { DateCalculator } from '../../../core/utils/date-calculator';
 
 @Component({
@@ -75,7 +77,7 @@ import { DateCalculator } from '../../../core/utils/date-calculator';
 
               <mat-form-field appearance="fill" class="form-field">
                 <mat-label>Organization</mat-label>
-                <mat-select formControlName="organizationId" required>
+                <mat-select formControlName="organizationId" required (selectionChange)="onOrganizationChange($event)">
                   <mat-option *ngFor="let org of organizations" [value]="org._id">
                     {{ org.name }}
                   </mat-option>
@@ -298,11 +300,17 @@ export class TenderFormComponent implements OnInit {
 
   separatorKeysCodes: number[] = [ENTER, COMMA];
 
+  get items() {
+    return this.detailsForm.get('items') as FormArray;
+  }
+
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private tenderService: TenderService
+    private tenderService: TenderService,
+    private organizationService: OrganizationService,
+    private countryService: CountryService
   ) {
     this.basicInfoForm = this.fb.group({
       title: ['', Validators.required],
@@ -332,32 +340,16 @@ export class TenderFormComponent implements OnInit {
     });
   }
 
-  get items() {
-    return this.detailsForm.get('items') as FormArray;
-  }
-
   ngOnInit(): void {
-    // Populate countries (would come from a service)
-    this.countries = [
-      { code: 'IN', name: 'India' },
-      { code: 'US', name: 'United States' },
-      { code: 'UK', name: 'United Kingdom' }
-    ];
+    // Load countries
+    this.countryService.getCountries().subscribe(countries => {
+      this.countries = countries;
+    });
 
-    // Populate organizations (would come from a service)
-    this.organizations = [
-      {
-        _id: 'org123',
-        name: 'Demo Organization',
-        address: '123 Demo St',
-        country: 'IN',
-        alias: 'DEMO',
-        units: ['HQ', 'Branch 1', 'Branch 2'],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        isActive: true
-      }
-    ];
+    // Load organizations
+    this.organizationService.getOrganizations().subscribe(response => {
+      this.organizations = response.data;
+    });
 
     const id = this.route.snapshot.paramMap.get('id');
     this.isEditMode = !!id;
@@ -384,6 +376,16 @@ export class TenderFormComponent implements OnInit {
 
     // Set default dates
     this.calculateDates(new Date());
+  }
+
+  onOrganizationChange(event: any): void {
+    const organizationId = event.value;
+    const selectedOrg = this.organizations.find(org => org._id === organizationId);
+    if (selectedOrg) {
+      this.organizationUnits = selectedOrg.units;
+      // Reset organization unit selection
+      this.basicInfoForm.patchValue({ organizationUnit: '' });
+    }
   }
 
   onCreationDateChange(event: any): void {
@@ -421,6 +423,12 @@ export class TenderFormComponent implements OnInit {
       organizationId: tender.organizationId,
       organizationUnit: tender.organizationUnit
     });
+
+    // Update organization units based on selected organization
+    const selectedOrg = this.organizations.find(org => org._id === tender.organizationId);
+    if (selectedOrg) {
+      this.organizationUnits = selectedOrg.units;
+    }
 
     this.detailsForm.patchValue({
       type: tender.type,
