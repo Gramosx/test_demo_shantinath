@@ -38,6 +38,7 @@ export class LoginComponent {
   get f() { return this.loginForm.controls; }
 
   onSubmit(): void {
+    console.log(this.loginForm.value);
     if (this.loginForm.invalid) {
       // Mark all fields as touched to trigger validation messages
       Object.keys(this.f).forEach(key => {
@@ -55,7 +56,7 @@ export class LoginComponent {
       password: this.f['password'].value
     };
 
-    this.authService.login(credentials).subscribe({
+    this.authService.login(credentials.email, credentials.password).subscribe({
       next: () => {
         this.router.navigate([this.returnUrl]);
       },

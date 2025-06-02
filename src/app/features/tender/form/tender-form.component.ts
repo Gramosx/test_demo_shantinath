@@ -15,26 +15,28 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TenderType, TenderTOC, TenderStatus, TenderStage } from '../../../core/types/enums';
 import { Country, Organization, TenderDates } from '../../../core/types/models';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
+import { TenderService } from '../../../core/services/tender.service';
+import { DateCalculator } from '../../../core/utils/date-calculator';
 
 @Component({
-    selector: 'app-tender-form',
-    standalone: true,
-    imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        MatButtonModule,
-        MatCardModule,
-        MatChipsModule,
-        MatDatepickerModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatSelectModule,
-        MatNativeDateModule,
-        MatIconModule,
-        MatStepperModule,
-        RouterLink
-    ],
-    template: `
+  selector: 'app-tender-form',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatCardModule,
+    MatChipsModule,
+    MatDatepickerModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatNativeDateModule,
+    MatIconModule,
+    MatStepperModule,
+    RouterLink
+  ],
+  template: `
     <div class="tender-form-container">
       <h1 class="page-title">{{ isEditMode ? 'Edit' : 'Create' }} Tender</h1>
 
@@ -249,7 +251,7 @@ import { COMMA, ENTER } from '@angular/cdk/keycodes';
       </mat-stepper>
     </div>
   `,
-    styles: [`
+  styles: [`
     .tender-form-container {
       padding: 20px;
     }
@@ -278,150 +280,212 @@ import { COMMA, ENTER } from '@angular/cdk/keycodes';
   `]
 })
 export class TenderFormComponent implements OnInit {
-    basicInfoForm: FormGroup;
-    detailsForm: FormGroup;
-    datesForm: FormGroup;
-    isEditMode = false;
+  basicInfoForm: FormGroup;
+  detailsForm: FormGroup;
+  datesForm: FormGroup;
+  isEditMode = false;
+  loading = false;
+  error = '';
 
-    // Dropdown options
-    countries: Country[] = [];
-    organizations: Organization[] = [];
-    organizationUnits: string[] = [];
-    tenderTypes = Object.values(TenderType);
-    tenderTOCs = Object.values(TenderTOC);
-    tenderStatuses = Object.values(TenderStatus);
-    tenderStages = Object.values(TenderStage);
+  // Dropdown options
+  countries: Country[] = [];
+  organizations: Organization[] = [];
+  organizationUnits: string[] = [];
+  tenderTypes = Object.values(TenderType);
+  tenderTOCs = Object.values(TenderTOC);
+  tenderStatuses = Object.values(TenderStatus);
+  tenderStages = Object.values(TenderStage);
 
-    separatorKeysCodes: number[] = [ENTER, COMMA];
+  separatorKeysCodes: number[] = [ENTER, COMMA];
 
-    constructor(
-        private fb: FormBuilder,
-        private route: ActivatedRoute,
-        private router: Router
-    ) {
-        this.basicInfoForm = this.fb.group({
-            title: ['', Validators.required],
-            description: ['', Validators.required],
-            country: ['', Validators.required],
-            organizationId: ['', Validators.required],
-            organizationUnit: ['', Validators.required]
-        });
+  constructor(
+    private fb: FormBuilder,
+    private route: ActivatedRoute,
+    private router: Router,
+    private tenderService: TenderService
+  ) {
+    this.basicInfoForm = this.fb.group({
+      title: ['', Validators.required],
+      description: ['', Validators.required],
+      country: ['', Validators.required],
+      organizationId: ['', Validators.required],
+      organizationUnit: ['', Validators.required]
+    });
 
-        this.detailsForm = this.fb.group({
-            type: [TenderType.GEM, Validators.required],
-            toc: [TenderTOC.CLEAR, Validators.required],
-            status: [TenderStatus.DRAFT, Validators.required],
-            currentStage: [TenderStage.CREATION, Validators.required],
-            items: this.fb.array([])
-        });
+    this.detailsForm = this.fb.group({
+      type: [TenderType.GEM, Validators.required],
+      toc: [TenderTOC.CLEAR, Validators.required],
+      status: [TenderStatus.DRAFT, Validators.required],
+      currentStage: [TenderStage.CREATION, Validators.required],
+      items: this.fb.array([])
+    });
 
-        this.datesForm = this.fb.group({
-            dates: this.fb.group({
-                creation: [new Date(), Validators.required],
-                sendForQuote: [null, Validators.required],
-                priceDiscussion: [null, Validators.required],
-                quoteApproval: [null, Validators.required],
-                submission: [null, Validators.required],
-                reference: [null, Validators.required]
-            })
-        });
-    }
+    this.datesForm = this.fb.group({
+      dates: this.fb.group({
+        creation: [new Date(), Validators.required],
+        sendForQuote: [null, Validators.required],
+        priceDiscussion: [null, Validators.required],
+        quoteApproval: [null, Validators.required],
+        submission: [null, Validators.required],
+        reference: [null, Validators.required]
+      })
+    });
+  }
 
-    get items() {
-        return this.detailsForm.get('items') as FormArray;
-    }
+  get items() {
+    return this.detailsForm.get('items') as FormArray;
+  }
 
-    ngOnInit(): void {
-        // Populate countries (would come from a service)
-        this.countries = [
-            { code: 'IN', name: 'India' },
-            { code: 'US', name: 'United States' },
-            { code: 'UK', name: 'United Kingdom' }
-        ];
+  ngOnInit(): void {
+    // Populate countries (would come from a service)
+    this.countries = [
+      { code: 'IN', name: 'India' },
+      { code: 'US', name: 'United States' },
+      { code: 'UK', name: 'United Kingdom' }
+    ];
 
-        // Populate organizations (would come from a service)
-        this.organizations = [];
+    // Populate organizations (would come from a service)
+    this.organizations = [
+      {
+        _id: 'org123',
+        name: 'Demo Organization',
+        address: '123 Demo St',
+        country: 'IN',
+        alias: 'DEMO',
+        units: ['HQ', 'Branch 1', 'Branch 2'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isActive: true
+      }
+    ];
 
-        const id = this.route.snapshot.paramMap.get('id');
-        this.isEditMode = !!id;
+    const id = this.route.snapshot.paramMap.get('id');
+    this.isEditMode = !!id;
 
-        if (this.isEditMode) {
-            // This would fetch tender data from a service
-            console.log('Editing tender with ID:', id);
+    if (this.isEditMode && id) {
+      this.loading = true;
+      this.tenderService.getTender(id).subscribe({
+        next: (tender) => {
+          if (tender) {
+            this.populateForm(tender);
+          } else {
+            this.error = 'Tender not found';
+            this.router.navigate(['/tenders']);
+          }
+          this.loading = false;
+        },
+        error: (error) => {
+          this.error = 'Failed to load tender';
+          this.loading = false;
+          console.error('Error loading tender:', error);
         }
-
-        // Set default dates
-        this.calculateDates(new Date());
+      });
     }
 
-    onCreationDateChange(event: any): void {
-        const date = event.value;
-        if (date) {
-            this.calculateDates(date);
+    // Set default dates
+    this.calculateDates(new Date());
+  }
+
+  onCreationDateChange(event: any): void {
+    const date = event.value;
+    if (date) {
+      this.calculateDates(date);
+    }
+  }
+
+  calculateDates(creationDate: Date): void {
+    const dates = DateCalculator.calculateTenderDates(creationDate);
+    const datesGroup = this.datesForm.get('dates') as FormGroup;
+    datesGroup.patchValue(dates);
+  }
+
+  addItem(event: MatChipInputEvent): void {
+    const value = (event.value || '').trim();
+    if (value) {
+      this.items.push(this.fb.control(value));
+    }
+    event.chipInput!.clear();
+  }
+
+  removeItem(index: number): void {
+    if (index >= 0) {
+      this.items.removeAt(index);
+    }
+  }
+
+  private populateForm(tender: any): void {
+    this.basicInfoForm.patchValue({
+      title: tender.title,
+      description: tender.description,
+      country: tender.country,
+      organizationId: tender.organizationId,
+      organizationUnit: tender.organizationUnit
+    });
+
+    this.detailsForm.patchValue({
+      type: tender.type,
+      toc: tender.toc,
+      status: tender.status,
+      currentStage: tender.currentStage
+    });
+
+    // Clear existing items and add new ones
+    while (this.items.length) {
+      this.items.removeAt(0);
+    }
+    tender.items.forEach((item: string) => {
+      this.items.push(this.fb.control(item));
+    });
+
+    this.datesForm.patchValue({
+      dates: tender.dates
+    });
+  }
+
+  onSubmit(): void {
+    if (this.basicInfoForm.invalid || this.detailsForm.invalid || this.datesForm.invalid) {
+      return;
+    }
+
+    this.loading = true;
+
+    // Combine all form values
+    const tenderData = {
+      ...this.basicInfoForm.value,
+      ...this.detailsForm.value,
+      ...this.datesForm.value
+    };
+
+    const id = this.route.snapshot.paramMap.get('id');
+
+    if (this.isEditMode && id) {
+      this.tenderService.updateTender(id, tenderData).subscribe({
+        next: (tender) => {
+          if (tender) {
+            this.router.navigate(['/tenders']);
+          } else {
+            this.error = 'Failed to update tender';
+          }
+          this.loading = false;
+        },
+        error: (error) => {
+          this.error = 'Failed to update tender';
+          this.loading = false;
+          console.error('Error updating tender:', error);
         }
-    }
-
-    calculateDates(creationDate: Date): void {
-        // This is a simplified version - would use a real business day calculator service
-        const sendForQuote = new Date(creationDate);
-        sendForQuote.setDate(sendForQuote.getDate() + 3);
-
-        const priceDiscussion = new Date(creationDate);
-        priceDiscussion.setDate(priceDiscussion.getDate() + 5);
-
-        const quoteApproval = new Date(creationDate);
-        quoteApproval.setDate(quoteApproval.getDate() + 10);
-
-        const submission = new Date(creationDate);
-        submission.setDate(submission.getDate() + 15);
-
-        const reference = new Date(submission);
-        reference.setDate(reference.getDate() + 2);
-
-        const datesGroup = this.datesForm.get('dates') as FormGroup;
-        datesGroup.patchValue({
-            sendForQuote,
-            priceDiscussion,
-            quoteApproval,
-            submission,
-            reference
-        });
-    }
-
-    addItem(event: MatChipInputEvent): void {
-        const value = (event.value || '').trim();
-
-        if (value) {
-            this.items.push(this.fb.control(value));
+      });
+    } else {
+      this.tenderService.createTender(tenderData).subscribe({
+        next: (tender) => {
+          this.router.navigate(['/tenders']);
+          this.loading = false;
+        },
+        error: (error) => {
+          this.error = 'Failed to create tender';
+          this.loading = false;
+          console.error('Error creating tender:', error);
         }
-
-        event.chipInput!.clear();
+      });
     }
-
-    removeItem(index: number): void {
-        this.items.removeAt(index);
-    }
-
-    onSubmit(): void {
-        if (this.basicInfoForm.invalid || this.detailsForm.invalid || this.datesForm.invalid) {
-            return;
-        }
-
-        // Combine all form values
-        const tenderData = {
-            ...this.basicInfoForm.value,
-            ...this.detailsForm.value,
-            ...this.datesForm.value
-        };
-
-        if (this.isEditMode) {
-            // This would call a service to update the tender
-            console.log('Update tender:', tenderData);
-        } else {
-            // This would call a service to create the tender
-            console.log('Create tender:', tenderData);
-        }
-
-        this.router.navigate(['/tenders']);
-    }
+  }
 }

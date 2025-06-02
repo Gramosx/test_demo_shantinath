@@ -1,98 +1,109 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import { User, AuthResponse, LoginDto, RegisterDto } from '../types/models';
 import { environment } from '../../../environments/environment';
+import { UserRole } from '../types/enums';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private apiUrl = `${environment.apiUrl}/auth`;
-  private tokenKey = 'auth_token';
-  private userKey = 'auth_user';
-
-  private currentUserSubject = new BehaviorSubject<User | null>(this.getUserFromStorage());
+  private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
+  private readonly TOKEN_KEY = 'auth_token';
+  private readonly USER_KEY = 'current_user';
 
-  private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasToken());
-  public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
+  // Add isAuthenticated$ observable
+  public isAuthenticated$ = this.currentUser$.pipe(
+    map(user => !!user)
+  );
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {
+    // Initialize from localStorage on service creation
+    const storedUser = localStorage.getItem(this.USER_KEY);
+    if (storedUser) {
+      this.currentUserSubject.next(JSON.parse(storedUser));
+    }
+  }
 
-  login(credentials: LoginDto): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
-      tap(response => this.handleAuthentication(response)),
-      catchError(error => {
-        console.error('Login error:', error);
-        return throwError(() => new Error(error.error?.message || 'Login failed. Please try again.'));
-      })
-    );
+  login(email: string, password: string): Observable<User> {
+    // Mock successful login for demo
+    const mockUser: User = {
+      id: '1',
+      username: 'demo',
+      email: email,
+      fullName: 'Demo User',
+      role: UserRole.ADMIN,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    // Store in localStorage
+    localStorage.setItem(this.TOKEN_KEY, 'mock-jwt-token');
+    localStorage.setItem(this.USER_KEY, JSON.stringify(mockUser));
+
+    // Update BehaviorSubject
+    this.currentUserSubject.next(mockUser);
+
+    return of(mockUser);
   }
 
   register(userData: RegisterDto): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, userData).pipe(
-      tap(response => this.handleAuthentication(response)),
-      catchError(error => {
-        console.error('Registration error:', error);
-        return throwError(() => new Error(error.error?.message || 'Registration failed. Please try again.'));
-      })
-    );
+    // Mock successful registration for demo
+    const mockUser: User = {
+      id: '2',
+      username: userData.username,
+      email: userData.email,
+      fullName: userData.fullName,
+      role: UserRole.USER,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    const mockResponse: AuthResponse = {
+      user: mockUser,
+      access_token: 'mock-jwt-token'
+    };
+
+    // Store in localStorage
+    localStorage.setItem(this.TOKEN_KEY, mockResponse.access_token);
+    localStorage.setItem(this.USER_KEY, JSON.stringify(mockUser));
+
+    // Update BehaviorSubject
+    this.currentUserSubject.next(mockUser);
+
+    return of(mockResponse);
   }
 
   logout(): void {
-    localStorage.removeItem(this.tokenKey);
-    localStorage.removeItem(this.userKey);
+    // Clear localStorage
+    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.USER_KEY);
+
+    // Clear BehaviorSubject
     this.currentUserSubject.next(null);
-    this.isAuthenticatedSubject.next(false);
   }
 
   getProfile(): Observable<User> {
-    return this.http.get<User>(`${this.apiUrl}/profile`).pipe(
-      tap(user => {
-        this.currentUserSubject.next(user);
-      }),
-      catchError(error => {
-        console.error('Profile fetch error:', error);
-        if (error.status === 401) {
-          this.logout();
-        }
-        return throwError(() => new Error('Failed to load user profile.'));
-      })
-    );
+    const storedUser = localStorage.getItem(this.USER_KEY);
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      this.currentUserSubject.next(user);
+      return of(user);
+    }
+    return throwError(() => new Error('No user found'));
   }
 
   getToken(): string | null {
-    return localStorage.getItem(this.tokenKey);
+    return localStorage.getItem(this.TOKEN_KEY);
   }
 
-  getCurrentUser(): User | null {
-    return this.currentUserSubject.value;
-  }
-
-  // Helper methods
-  private handleAuthentication(response: AuthResponse): void {
-    localStorage.setItem(this.tokenKey, response.access_token);
-    localStorage.setItem(this.userKey, JSON.stringify(response.user));
-    this.currentUserSubject.next(response.user);
-    this.isAuthenticatedSubject.next(true);
-  }
-
-  private hasToken(): boolean {
-    return !!this.getToken();
-  }
-
-  private getUserFromStorage(): User | null {
-    const userJson = localStorage.getItem(this.userKey);
-    if (userJson) {
-      try {
-        return JSON.parse(userJson) as User;
-      } catch (e) {
-        console.error('Error parsing stored user:', e);
-        return null;
-      }
-    }
-    return null;
+  isAuthenticated(): boolean {
+    return !!localStorage.getItem(this.TOKEN_KEY);
   }
 }

@@ -167,3 +167,8 @@ export interface RegisterDto {
   fullName: string;
   role?: UserRole;
 }
+
+export interface UserResponse {
+  data: User[];
+  total: number;
+}
